@@ -1,0 +1,4 @@
+function int soma(int a, int b) {
+    return a + b; $ soma dois inteiros $
+}
+int total = soma(10, 3.14);

@@ -36,7 +36,6 @@ public class Scanner {
     String source;
     int pos = 0, line = 1, column = 1;
 
-    // Guarda as mensagens de erro léxico encontradas, com linha e coluna.
     private final List<String> errors = new ArrayList<>();
 
     public Scanner(String source) {
@@ -51,8 +50,6 @@ public class Scanner {
         return source.charAt(pos);
     }
 
-    // Olha um caractere além do atual, sem consumir nenhum. Necessário para
-    // decidir "<" vs "<=" e ">" vs ">=" (maximal munch) sem avançar antes da hora.
     char peekNext() {
         if (pos + 1 >= source.length()) return '\0';
         return source.charAt(pos + 1);
@@ -105,7 +102,7 @@ public class Scanner {
 
             if (c == '$') {
                 int lineInit = line, columnInit = column;
-                advance(); // consome o "$" de abertura
+                advance();
 
                 while (hasNext() && peek() != '$') {
                     advance();
@@ -182,12 +179,12 @@ public class Scanner {
             }
 
             if (c == '"') {
-                lexeme.append(advance()); // consome a aspas de fechamento
+                lexeme.append(advance());
                 return new Token(TokenType.STRING, lexeme.toString(), lineInit, columnInit);
             }
 
             if (c == '\\') {
-                lexeme.append(advance()); // consome a barra
+                lexeme.append(advance());
 
                 if (!hasNext()) {
                     reportarErro("string não fechada até o fim do arquivo (EOF)", lineInit, columnInit);
@@ -199,7 +196,7 @@ public class Scanner {
                     lexeme.append(advance());
                 } else {
                     reportarErro("sequência de escape inválida: \\" + escaped, line, column);
-                    lexeme.append(advance()); // consome mesmo assim e segue tokenizando (recuperação)
+                    lexeme.append(advance());
                 }
                 continue;
             }
