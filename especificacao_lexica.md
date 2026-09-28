@@ -11,13 +11,13 @@ letra  = [A-Za-z]
 dígito = [0-9]
 ```
 
-Notação EBNF: `( )` agrupa, `|` alterna, `*` zero ou mais, `+` um ou mais, `?` opcional. Terminais ficam entre aspas.
+Notação EBNF: `( )` agrupa, `|` alterna, `*` zero ou mais, `+` um ou mais.
 
 ## 2. Categorias de token
 
 | Categoria | Notação (regex/EBNF) | Exemplos válidos | Decisões |
 |---|---|---|---|
-| Identificador | `( letra \| "_" ) ( letra \| dígito \| "_" )*` | `total`, `x1`, `_aux`, `contaItens` | Case-sensitive; `_` permitido, inclusive no início; não começa com dígito; **máximo 127 caracteres** (acima disso é erro léxico); apenas letras ASCII (sem acentos) |
+| Identificador | `( letra \| "_" ) ( letra \| dígito \| "_" )*` | `total`, `x1`, `_aux`, `contaItens` | Case-sensitive; `_` permitido, inclusive no início; não começa com dígito; **máximo 127 caracteres** (acima disso é erro léxico); letras acentuadas do português são permitidas |
 | Palavra reservada | mesmo padrão do identificador + tabela de busca | `if`, `while`, `int`, `return` | Lista fechada na seção 4; sempre minúsculas |
 | String | `"\"" ( caractere_comum \| escape )* "\""` | `"ok"`, `"linha 1"`, `"a\tb\n"` | Não pode conter quebra de linha; ver detalhes abaixo |
 | Operador | `"+" \| "-" \| "*" \| "/" \| "%" \| "=" \| "<" \| ">" \| "<=" \| ">="` e as palavras `and`, `or`, `not`, `equal` | `=`, `<=`, `+`, `and` | Formas compostas: apenas `<=` e `>=` |
@@ -45,15 +45,16 @@ escape          = "\\\"" | "\\\\" | "\\n" | "\\t"      (ou seja:  \"   \\   \n  
 
 ### 2.3 Operadores
 
-| Operador | Significado |
-|---|---|
-| `+` `-` `*` `/` `%` | aritméticos |
-| `=` | atribuição |
-| `<` `>` `<=` `>=` | relacionais |
-| `equal` | igualdade |
-| `and` `or` `not` | lógicos |
+| Operador | Significado | Tipo de token emitido |
+|---|---|---|
+| `+` `-` `*` `/` `%` `=` `<` `>` `<=` `>=` | aritméticos, atribuição, relacionais | `OPERATOR` (genérico) |
+| `equal` | igualdade | `EQUAL` |
+| `and` | lógico (conjunção) | `AND` |
+| `or` | lógico (disjunção) | `OR` |
+| `not` | lógico (negação) | `NOT` |
 
-Não há `==` nem `!=`; a desigualdade é escrita `not (a equal b)`. As palavras `and`, `or`, `not` e `equal` seguem o padrão do identificador, ficam na tabela de palavras reservadas e o scanner as emite com token do tipo operador.
+Não há `==` nem `!=`; a desigualdade é escrita `not (a equal b)`. As palavras `and`, `or`, `not` e `equal` seguem o 
+padrão do identificador e ficam na tabela de palavras reservadas, mas cada uma tem seu próprio tipo de token (`AND`, `OR`, `NOT`, `EQUAL`), diferente dos operadores simbólicos, que compartilham o tipo genérico `OPERATOR`.
 
 ### 2.4 Delimitadores
 
