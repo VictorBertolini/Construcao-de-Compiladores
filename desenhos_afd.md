@@ -35,15 +35,15 @@ Nessa notação, `escape` é o caractere lido depois da barra. As sequências co
 flowchart LR
     init((" ")) --> STR_INICIO((STR_INICIO))
     STR_INICIO -- "aspas" --> STR_CORPO((STR_CORPO))
-
-    STR_CORPO -->|\| STR_ESCAPE((STR_ESCAPE))
-    STR_ESCAPE -->|n ou t ou \ ou &#34; | STR_CORPO
-
-    STR_CORPO -->|caractere_comum| STR_CORPO
-    STR_CORPO -->|aspas| STR_FIM(((STR_FIM)))
-
-    STR_FIM -.-> ACEITA["ACEITA STRING"]
-
+    
+    STR_CORPO -- "\" --> STR_ESCAPE((STR_ESCAPE))
+    STR_ESCAPE -- "n ou t ou \\ ou &quot;" --> STR_CORPO
+    
+    STR_CORPO -- "caractere_comum" --> STR_CORPO
+    STR_CORPO -- "aspas" --> STR_FIM(((STR_FIM)))
+    
+    ACEITA["ACEITA STRING"] -.- STR_FIM
+    
     style init fill:none,stroke:none
 ```
 
