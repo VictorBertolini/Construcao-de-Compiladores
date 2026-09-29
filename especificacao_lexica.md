@@ -1,9 +1,5 @@
 # Especificação Léxica
 
-Checkpoint 1 — Construção de Compiladores · UFU.FACOM.BCC
-
-Este documento é o contrato do analisador léxico: o scanner implementa exatamente o que está descrito aqui, nem mais nem menos.
-
 ## 1. Convenções de notação
 
 ```
