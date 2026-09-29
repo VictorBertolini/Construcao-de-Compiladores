@@ -36,14 +36,12 @@ flowchart LR
     init((" ")) --> STR_INICIO((STR_INICIO))
     STR_INICIO -- "aspas" --> STR_CORPO((STR_CORPO))
     
-    STR_CORPO -- "\" --> STR_ESCAPE((STR_ESCAPE))
-    
-    STR_ESCAPE -- "n ou t ou \\ ou aspas-duplas" --> STR_CORPO
-    
-    STR_CORPO -- "caractere_comum" --> STR_CORPO
+    STR_CORPO -- "comum" --> STR_CORPO
+    STR_CORPO -- "barra" --> STR_ESCAPE((STR_ESCAPE))
+    STR_ESCAPE -- "n | t | barra | aspas" --> STR_CORPO
     STR_CORPO -- "aspas" --> STR_FIM(((STR_FIM)))
     
-    
+    STR_FIM -.-> ACEITA["ACEITA STRING"]
     
     style init fill:none,stroke:none
 ```
