@@ -43,7 +43,7 @@ flowchart LR
     STR_CORPO -- "caractere_comum" --> STR_CORPO
     STR_CORPO -- "aspas" --> STR_FIM(((STR_FIM)))
     
-    ACEITA["ACEITA STRING"] -.- STR_FIM
+    
     
     style init fill:none,stroke:none
 ```
