@@ -102,8 +102,10 @@ public class Scanner {
 
             if (c == '$') {
                 int lineInit = line, columnInit = column;
+                // COM_INICIO
                 advance();
 
+                // COM_CORPO
                 while (hasNext() && peek() != '$') {
                     advance();
                 }
@@ -112,7 +114,7 @@ public class Scanner {
                     reportarErro("comentário não fechado até o fim do arquivo (EOF)", lineInit, columnInit);
                     return;
                 }
-
+                // COM_FIM
                 advance();
                 continue;
             }
@@ -125,15 +127,18 @@ public class Scanner {
         int lineInit = line, columnInit = column;
         StringBuilder lexeme = new StringBuilder();
 
+        // NUM_INICIO / NUM_INTEIRO
         while (hasNext() && Character.isDigit(peek()))
             lexeme.append(advance());
 
         if (hasNext() && peek() == '.') {
+            // NUM_PONTO
             lexeme.append(advance());
             if (!hasNext() || !Character.isDigit(peek())) {
                 reportarErro("número real mal formado: " + lexeme, lineInit, columnInit);
                 return new Token(TokenType.ERROR, lexeme.toString(), lineInit, columnInit);
             }
+            // NUM_REAL
             while (hasNext() && Character.isDigit(peek())) lexeme.append(advance());
             return new Token(TokenType.REAL, lexeme.toString(), lineInit, columnInit);
         }
@@ -144,7 +149,9 @@ public class Scanner {
         int lineInit = line, columnInit = column;
         StringBuilder lexeme = new StringBuilder();
 
+        // ID_INICIO
         lexeme.append(advance());
+        //ID_CORPO
         while (hasNext() && (Character.isLetterOrDigit(peek()) || peek() == '_')) {
             lexeme.append(advance());
         }
@@ -163,6 +170,7 @@ public class Scanner {
     private Token scanString() {
         int lineInit = line, columnInit = column;
         StringBuilder lexeme = new StringBuilder();
+        // STR_INICIO
         lexeme.append(advance());
 
         while (true) {
@@ -180,10 +188,12 @@ public class Scanner {
 
             if (c == '"') {
                 lexeme.append(advance());
+                // STR_FIM
                 return new Token(TokenType.STRING, lexeme.toString(), lineInit, columnInit);
             }
 
             if (c == '\\') {
+                // STR_ESCAPE
                 lexeme.append(advance());
 
                 if (!hasNext()) {
@@ -201,6 +211,7 @@ public class Scanner {
                 continue;
             }
 
+            // STR_CORPO
             lexeme.append(advance());
         }
     }
@@ -216,13 +227,16 @@ public class Scanner {
             case '/':
             case '%':
             case '=':
+                // OP_SIMPLES
                 advance();
                 return new Token(TokenType.OPERATOR, String.valueOf(c), lineInit, columnInit);
 
             case '<':
             case '>':
+                // OP_RELACIONAL
                 advance();
                 if (hasNext() && peek() == '=') {
+                    // OP_COMPOSTO
                     advance();
                     return new Token(TokenType.OPERATOR, c + "=", lineInit, columnInit);
                 }
@@ -234,6 +248,7 @@ public class Scanner {
             case '}':
             case ',':
             case ';':
+                // DEL_FIM
                 advance();
                 return new Token(TokenType.DELIMITER, String.valueOf(c), lineInit, columnInit);
 
