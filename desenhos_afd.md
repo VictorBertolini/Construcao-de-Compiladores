@@ -37,7 +37,7 @@ flowchart LR
     STR_INICIO -- "aspas" --> STR_CORPO((STR_CORPO))
 
     STR_CORPO -->|\| STR_ESCAPE((STR_ESCAPE))
-    STR_ESCAPE -->|n ou t ou \ ou &#34 | STR_CORPO
+    STR_ESCAPE -->|n ou t ou \ ou &#34; | STR_CORPO
 
     STR_CORPO -->|caractere_comum| STR_CORPO
     STR_CORPO -->|aspas| STR_FIM(((STR_FIM)))
