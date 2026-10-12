@@ -1,5 +1,43 @@
 # Gramática da linguagem, FIRST/FOLLOW e verificação LL(1)
 
+<details><summary>Glossário para consulta</summary>
+
+| Símbolo ou termo | Significado | Exemplo na gramática |
+|---|---|---|
+| **BNF** | Notação que descreve uma linguagem por meio de regras de produção. | `<params_opt> ::= <params> \| ε` |
+| **Não-terminal** | Categoria sintática definida por outras regras; aparece entre `<` e `>`. | `<expr>`, `<tipo>`, `<params_opt>` |
+| **Terminal** | Símbolo reconhecido na entrada, sem novas expansões pela gramática. | `"if"`, `"("`, `ID`, `LIT_INT` |
+| **`::=`** | “É definido por” ou “pode ser substituído por”. | `<param> ::= <tipo> ID` |
+| **`\|`** | Separa alternativas: significa “ou”. | `<params_opt>` pode produzir `<params>` **ou** `ε`. |
+| **`ε` (épsilon)** | Sequência vazia: a regra pode não consumir nenhum token. Não é um caractere digitado no programa. | `<params_opt> ::= <params> \| ε` |
+| **`<programa>`** | Símbolo inicial da gramática; é por ele que o reconhecimento começa. | `<programa> ::= <itens>` |
+| **`ID`** | Classe de token de identificadores (nomes de variáveis e funções), conforme a convenção descrita na Seção 1. | `ID` em `<param> ::= <tipo> ID` |
+| **`LIT_INT`, `LIT_REAL`, `LIT_STRING`** | Classes de tokens para literais inteiros, reais e strings. | `<primario> ::= LIT_INT \| ...` |
+| **`EOF`** | Fim da entrada: indica que não há mais tokens após o programa. | O reconhecimento de `<programa>` deve chegar ao `EOF`. |
+| **Derivação** | Aplicação sucessiva das regras até obter apenas terminais (ou a sequência vazia). | `<params_opt> ⇒ ε` |
+| **Anulável** | Não-terminal que pode derivar `ε`. | `<params_opt>` é anulável. |
+| **FIRST(A)** | Conjunto de terminais que podem iniciar cadeias derivadas do não-terminal `A`; inclui `ε` quando `A` é anulável. | `FIRST(<params_opt>)` ajuda a decidir se há parâmetros. |
+| **FOLLOW(A)** | Conjunto de terminais que podem aparecer imediatamente depois de `A` numa derivação válida; pode incluir `EOF`. | `")"` pode vir depois de `<params_opt>`. |
+| **LL(1)** | Gramática analisável da esquerda para a direita, construindo derivação mais à esquerda, com **um** token de antecipação. | O próximo token determina a alternativa válida. |
+| **Lookahead** | Próximo token examinado pelo parser, antes de decidir a produção. | `")"` permite escolher `ε` em `<params_opt>`. |
+| **Recursão à esquerda** | Situação em que um não-terminal pode produzir uma sequência iniciada por ele mesmo; precisa ser eliminada para descida recursiva preditiva. | `<expr_soma> ::= <expr_soma> "+" <expr_prod> \| ...` (forma não adotada). |
+| **Fatoração à esquerda** | Extração de um prefixo comum a alternativas para adiar a decisão do parser. | `ID` é consumido antes de decidir entre atribuição e chamada. |
+| **Interseção (`∩`) e conjunto vazio (`∅`)** | `∩` indica elementos comuns entre conjuntos; `∅` significa ausência de elementos comuns. | `FIRST(α) ∩ FIRST(β) = ∅` expressa alternativas sem conflito FIRST/FIRST. |
+
+**Como ler uma produção:**
+
+```bnf
+<params_opt> ::= <params> | ε
+```
+
+Leia: “`<params_opt>` é definido como uma lista de parâmetros (`<params>`) **ou** como uma sequência vazia (`ε`)”. Assim, `function int soma(int a, int b) { ... }` usa a primeira alternativa, enquanto `function void executar() { ... }` usa a segunda. O `ε` não corresponde a nenhum token real.
+
+Nos nomes dos não-terminais, os sufixos **`_opt`**, **`_rest`** e o prefixo **`cauda_`** ajudam na leitura: em geral indicam, respectivamente, uma parte opcional, a continuação de uma lista e a continuação de uma expressão ou construção. São convenções de nomeação, não símbolos especiais da BNF.
+
+</details>
+
+<br><br>
+
 Esta gramática descreve a sintaxe da linguagem definida em `especificacao_lexica.md`, utilizando os tokens fornecidos pelo `Scanner` do CP1. Ela contempla declarações globais e locais, atribuições, expressões, chamadas, funções com parâmetros, blocos, `return` com ou sem expressão, `if`/`elif`/`else`, `while` e `for`. Funções com retorno `void` também permitem representar procedimentos.
 
 Os tipos aceitos são `int`, `long`, `float`, `double`, `boolean`, `string`, `bool` e `char`, além de `void` **somente como tipo de retorno**. Os tipos `long`, `float` e `boolean` preservam as escolhas do CP1; `bool` e `char` atendem ao escopo fixo do CP2.
