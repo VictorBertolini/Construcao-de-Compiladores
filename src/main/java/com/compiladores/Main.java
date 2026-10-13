@@ -1,5 +1,6 @@
 package com.compiladores;
 
+import com.compiladores.entity.Parser;
 import com.compiladores.entity.Scanner;
 import com.compiladores.entity.Token;
 
@@ -23,6 +24,12 @@ public class Main {
         System.out.println("\nErros léxicos encontrados: " + scanner.getErrors().size());
         for (String erro : scanner.getErrors()) {
             System.out.println("  " + erro);
+        }
+
+        Parser parser = new Parser(scanner);
+        boolean aceito = parser.parse();
+        for (String erro : parser.getErrors()) {
+            System.out.println(erro);
         }
     }
 
