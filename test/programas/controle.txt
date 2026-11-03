@@ -1,0 +1,13 @@
+function void controle(boolean ok) {
+    if (ok) {
+        print("sim");
+    } elif (not ok) {
+        print("nao");
+    } else {
+        print("outro");
+    }
+    while (ok) {
+        ok = false;
+    }
+    return;
+}

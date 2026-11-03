@@ -3,6 +3,8 @@ package com.compiladores;
 import com.compiladores.entity.Parser;
 import com.compiladores.entity.Scanner;
 import com.compiladores.entity.Token;
+import com.compiladores.visitor.TreePrinter;
+import com.compiladores.visitor.SourcePrinter;
 
 public class Main {
 
@@ -26,10 +28,15 @@ public class Main {
             System.out.println("  " + erro);
         }
 
-        Parser parser = new Parser(scanner);
-        boolean aceito = parser.parse();
-        for (String erro : parser.getErrors()) {
+        Parser parser = new Parser(codigo);
+        Parser.ParseResult resultado = parser.parse();
+        System.out.println("\nAceito: " + resultado.accepted());
+        for (String erro : resultado.errors) {
             System.out.println(erro);
+        }
+        if (resultado.accepted()) {
+            System.out.println("\nAST:\n" + new TreePrinter().print(resultado.ast));
+            System.out.println("\nCódigo reimpresso:\n" + new SourcePrinter().print(resultado.ast));
         }
     }
 

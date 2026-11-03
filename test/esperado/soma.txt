@@ -1,0 +1,15 @@
+Program
+  Function(soma)
+    Type(int)
+    Param(a)
+      Type(int)
+    Param(b)
+      Type(int)
+    Block
+      VarDecl(total)
+        Type(int)
+        Bin(+)
+          Id(a)
+          Id(b)
+      Return
+        Id(total)

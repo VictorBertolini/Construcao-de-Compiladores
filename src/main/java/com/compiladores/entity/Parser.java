@@ -1,100 +1,68 @@
 package com.compiladores.entity;
 
+import com.compiladores.ast.Ast.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/** Parser LL(1) do CP2, agora com construção de AST e recuperação em modo pânico. */
+public final class Parser {
+    private static final class ParseError extends RuntimeException { }
 
-public class Parser {
-
-    private static class ParseError extends RuntimeException {
+    public static final class ParseResult {
+        /** Nula se houver erros sintáticos ou léxicos. */
+        public final Program ast;
+        public final List<String> errors;
+        private ParseResult(Program ast, List<String> errors) {
+            this.ast = ast; this.errors = List.copyOf(errors);
+        }
+        public boolean accepted() { return ast != null && errors.isEmpty(); }
     }
 
-    private final List<Token> tokens;
-    private int pos = 0;
+    private final List<Token> tokens = new ArrayList<>();
     private final List<String> errors = new ArrayList<>();
+    private int pos = 0;
+    private ParseResult result;
 
     public Parser(Scanner scanner) {
-        tokens = new ArrayList<>();
-        Token token;
-        while ((token = scanner.nextToken()) != null) {
-            tokens.add(token);
-        }
+        Token t;
+        while ((t = scanner.nextToken()) != null) tokens.add(t);
+        errors.addAll(scanner.getErrors());
     }
-
-    public Parser(String source) {
-        this(new Scanner(source));
+    public Parser(String source) { this(new Scanner(source)); }
+    public List<String> getErrors() { return List.copyOf(errors); }
+    public ParseResult parse() {
+        if (result != null) return result;
+        Program tree = parsePrograma();
+        if (!isAtEnd()) error("token inesperado após o fim do programa, encontrado " + describe(peek()));
+        result = new ParseResult(errors.isEmpty() ? tree : null, errors);
+        return result;
     }
+    /** Compatibilidade para consumidores do resultado booleano do CP2. */
+    public boolean parseAceito() { return parse().accepted(); }
 
-    public List<String> getErrors() {
-        return errors;
-    }
-
-    /** Reconhece o programa inteiro. Retorna true se não houve nenhum erro. */
-    public boolean parse() {
-        parsePrograma();
-        if (!isAtEnd()) {
-            error("token inesperado após o fim do programa, encontrado " + describe(peek()));
-        }
-        return errors.isEmpty();
-    }
-
-    // ---------- leitura dos tokens ----------
-
-    private Token peek() {
-        return isAtEnd() ? null : tokens.get(pos);
-    }
-
-    private boolean isAtEnd() {
-        return pos >= tokens.size();
-    }
-
-    private Token advance() {
-        Token token = tokens.get(pos);
-        pos++;
-        return token;
-    }
-
-    private boolean isType(Token t, TokenType type) {
-        return t != null && t.getType() == type;
-    }
-
-    private boolean isOperator(Token t, String text) {
-        return isType(t, TokenType.OPERATOR) && t.getText().equals(text);
-    }
-
-    private boolean isDelimiter(Token t, String text) {
-        return isType(t, TokenType.DELIMITER) && t.getText().equals(text);
-    }
-
-    private boolean isReservedWord(Token t, String text) {
-        return isType(t, TokenType.RESERVED_WORD) && t.getText().equals(text);
-    }
-
+    private Token peek() { return isAtEnd() ? null : tokens.get(pos); }
+    private boolean isAtEnd() { return pos >= tokens.size(); }
+    private Token advance() { return tokens.get(pos++); }
+    private boolean isType(Token t, TokenType type) { return t != null && t.getType() == type; }
+    private boolean isOperator(Token t, String text) { return isType(t, TokenType.OPERATOR) && t.getText().equals(text); }
+    private boolean isDelimiter(Token t, String text) { return isType(t, TokenType.DELIMITER) && t.getText().equals(text); }
+    private boolean isReservedWord(Token t, String text) { return isType(t, TokenType.RESERVED_WORD) && t.getText().equals(text); }
     private Token match(TokenType type) {
-        if (isType(peek(), type)) {
-            return advance();
-        }
-        error("esperado " + nomeAmigavel(type) + ", encontrado " + describe(peek()));
-        throw new ParseError();
+        if (isType(peek(), type)) return advance();
+        invalid("esperado " + nomeAmigavel(type));
+        throw new AssertionError();
     }
-
     private Token match(TokenType type, String text) {
-        if (isType(peek(), type) && peek().getText().equals(text)) {
-            return advance();
-        }
-        error("esperado '" + text + "', encontrado " + describe(peek()));
-        throw new ParseError();
+        if (isType(peek(), type) && peek().getText().equals(text)) return advance();
+        invalid("esperado '" + text + "'");
+        throw new AssertionError();
     }
-
     private void error(String message) {
-        String local = isAtEnd() ? "fim do arquivo" : "linha " + peek().getLine() + ", coluna " + peek().getColumn();
-        errors.add("[" + local + "] " + message);
+        String at = isAtEnd() ? "fim do arquivo" : "linha " + peek().getLine() + ", coluna " + peek().getColumn();
+        errors.add("[" + at + "] " + message);
     }
-
-    private String describe(Token t) {
-        return t == null ? "fim do arquivo" : "'" + t.getText() + "'";
-    }
-
+    private void invalid(String expected) { error(expected + ", encontrado " + describe(peek())); throw new ParseError(); }
+    private String describe(Token t) { return t == null ? "fim do arquivo" : "'" + t.getText() + "'"; }
     private String nomeAmigavel(TokenType type) {
         switch (type) {
             case FUNCTION: return "'function'";
@@ -107,594 +75,290 @@ public class Parser {
         }
     }
 
-    // ---------- conjuntos FIRST (T, I, C, E da Seção 4 do documento) ----------
-
+    // Mesmas decisões FIRST/FOLLOW do CP2.
     private boolean startsTipo(Token t) {
         return isReservedWord(t, "int") || isReservedWord(t, "float") || isReservedWord(t, "double")
                 || isReservedWord(t, "string") || isType(t, TokenType.LONG) || isType(t, TokenType.BOOLEAN);
     }
-
-    private boolean startsItem(Token t) {
-        return isType(t, TokenType.FUNCTION) || startsTipo(t);
-    }
-
+    private boolean startsItem(Token t) { return isType(t, TokenType.FUNCTION) || startsTipo(t); }
     private boolean startsComando(Token t) {
         return startsTipo(t) || isType(t, TokenType.IDENTIFIER) || isType(t, TokenType.IF)
                 || isType(t, TokenType.WHILE) || isType(t, TokenType.FOR) || isType(t, TokenType.RETURN)
                 || isDelimiter(t, "{");
     }
-
     private boolean startsExpr(Token t) {
         return isType(t, TokenType.IDENTIFIER) || isType(t, TokenType.INT) || isType(t, TokenType.REAL)
                 || isType(t, TokenType.STRING) || isReservedWord(t, "true") || isReservedWord(t, "false")
                 || isDelimiter(t, "(") || isType(t, TokenType.NOT) || isOperator(t, "+") || isOperator(t, "-");
     }
-
-    // ---------- conjuntos FOLLOW usados nas checagens de ε (Seção 3 do documento) ----------
-
-    private boolean emFollowExpr(Token t) {
-        return isDelimiter(t, ")") || isDelimiter(t, ",") || isDelimiter(t, ";");
-    }
-
-    private boolean emFollowCaudaAnd(Token t) {
-        return isType(t, TokenType.OR) || emFollowExpr(t);
-    }
-
-    private boolean emFollowCaudaIgual(Token t) {
-        return isType(t, TokenType.AND) || emFollowCaudaAnd(t);
-    }
-
-    private boolean emFollowCaudaRel(Token t) {
-        return isType(t, TokenType.EQUAL) || emFollowCaudaIgual(t);
-    }
-
+    private boolean emFollowExpr(Token t) { return isDelimiter(t, ")") || isDelimiter(t, ",") || isDelimiter(t, ";"); }
+    private boolean emFollowCaudaAnd(Token t) { return isType(t, TokenType.OR) || emFollowExpr(t); }
+    private boolean emFollowCaudaIgual(Token t) { return isType(t, TokenType.AND) || emFollowCaudaAnd(t); }
+    private boolean emFollowCaudaRel(Token t) { return isType(t, TokenType.EQUAL) || emFollowCaudaIgual(t); }
     private boolean emFollowCaudaSoma(Token t) {
-        return isOperator(t, "<") || isOperator(t, ">") || isOperator(t, "<=") || isOperator(t, ">=")
-                || emFollowCaudaRel(t);
+        return isOperator(t, "<") || isOperator(t, ">") || isOperator(t, "<=") || isOperator(t, ">=") || emFollowCaudaRel(t);
     }
-
-    private boolean emFollowCaudaProd(Token t) {
-        return isOperator(t, "+") || isOperator(t, "-") || emFollowCaudaSoma(t);
-    }
-
+    private boolean emFollowCaudaProd(Token t) { return isOperator(t, "+") || isOperator(t, "-") || emFollowCaudaSoma(t); }
     private boolean emFollowPrimario(Token t) {
         return isOperator(t, "*") || isOperator(t, "/") || isOperator(t, "%") || emFollowCaudaProd(t);
     }
 
-    // ---------- sincronização em modo pânico ----------
-
-    private void sincronizarComItem() {
-        while (!isAtEnd() && !startsItem(peek())) {
-            advance();
-        }
+    private void sincronizarComItem(int start) {
+        if (pos == start && !isAtEnd()) advance();
+        while (!isAtEnd() && !startsItem(peek())) advance();
+    }
+    private void sincronizarComComando(int start) {
+        if (pos == start && !isAtEnd()) advance();
+        while (!isAtEnd() && !startsComando(peek()) && !isDelimiter(peek(), "}")) advance();
     }
 
-    private void sincronizarComComando() {
-        while (!isAtEnd() && !startsComando(peek()) && !isDelimiter(peek(), "}")) {
-            advance();
-        }
-    }
-
-    // ---------- programa e itens globais ----------
-
-    // <programa> ::= <itens>
-    private void parsePrograma() {
-        parseItens();
-    }
-
-    // <itens> ::= <item> <itens> | ε
-    private void parseItens() {
+    // <programa> ::= <itens>; <itens> ::= <item> <itens> | ε
+    private Program parsePrograma() {
+        Token first = peek();
+        List<Item> items = new ArrayList<>();
         while (startsItem(peek())) {
-            try {
-                parseItem();
-            } catch (ParseError e) {
-                sincronizarComItem();
-            }
+            int start = pos;
+            try { items.add(parseItem()); } catch (ParseError e) { sincronizarComItem(start); }
         }
+        return new Program(first == null ? 1 : first.getLine(), first == null ? 1 : first.getColumn(), items);
     }
-
-    // <item> ::= <funcao> | <decl_var>
-    private void parseItem() {
-        if (isType(peek(), TokenType.FUNCTION)) {
-            parseFuncao();
-            return;
-        }
-        if (startsTipo(peek())) {
-            parseDeclVar();
-            return;
-        }
-        error("esperada uma função ou declaração de variável, encontrado " + describe(peek()));
-        throw new ParseError();
+    private Item parseItem() {
+        if (isType(peek(), TokenType.FUNCTION)) return parseFuncao();
+        if (startsTipo(peek())) return parseDeclVar(true);
+        invalid("esperada uma função ou declaração de variável");
+        throw new AssertionError();
     }
-
-    // <funcao> ::= "function" <tipo_retorno> ID "(" <params_opt> ")" <bloco>
-    private void parseFuncao() {
-        match(TokenType.FUNCTION);
-        parseTipoRetorno();
-        match(TokenType.IDENTIFIER);
+    // <funcao> ::= function <tipo_retorno> ID ( <params_opt> ) <bloco>
+    private Item parseFuncao() {
+        Token keyword = match(TokenType.FUNCTION);
+        boolean isVoid = isType(peek(), TokenType.VOID);
+        Type ret = new Type(isVoid ? advance() : parseTipoToken());
+        Token name = match(TokenType.IDENTIFIER);
         match(TokenType.DELIMITER, "(");
-        parseParamsOpt();
+        List<Param> params = parseParamsOpt();
         match(TokenType.DELIMITER, ")");
-        parseBloco();
+        Block body = parseBloco();
+        return isVoid ? new ProcedureDecl(keyword, name.getText(), params, body)
+                : new FunctionDecl(keyword, ret, name.getText(), params, body);
     }
-
-    // <tipo_retorno> ::= <tipo> | "void"
-    private void parseTipoRetorno() {
-        if (isType(peek(), TokenType.VOID)) {
-            advance();
-            return;
-        }
-        parseTipo();
+    private Token parseTipoToken() {
+        if (startsTipo(peek())) return advance();
+        invalid("esperado um tipo (int, long, float, double, boolean ou string)");
+        throw new AssertionError();
     }
-
-    // <tipo> ::= "int" | "long" | "float" | "double" | "boolean" | "string"
-    private void parseTipo() {
-        Token t = peek();
-        if (startsTipo(t)) {
-            advance();
-            return;
-        }
-        error("esperado um tipo (int, long, float, double, boolean ou string), encontrado " + describe(t));
-        throw new ParseError();
-    }
-
-    // <params_opt> ::= <params> | ε
-    private void parseParamsOpt() {
+    private Type parseTipo() { return new Type(parseTipoToken()); }
+    // <params_opt> ::= <params> | ε; <params_rest> ::= "," <param> <params_rest> | ε
+    private List<Param> parseParamsOpt() {
+        List<Param> params = new ArrayList<>();
         if (startsTipo(peek())) {
-            parseParams();
-            return;
+            params.add(parseParam());
+            while (isDelimiter(peek(), ",")) { advance(); params.add(parseParam()); }
         }
-        if (isDelimiter(peek(), ")")) {
-            return;
-        }
-        error("esperado um parâmetro ou ')', encontrado " + describe(peek()));
-        throw new ParseError();
+        if (!isDelimiter(peek(), ")")) invalid("esperado um parâmetro, ',' ou ')'");
+        return params;
     }
+    private Param parseParam() { Type type = parseTipo(); return new Param(type, match(TokenType.IDENTIFIER)); }
 
-    // <params> ::= <param> <params_rest>
-    private void parseParams() {
-        parseParam();
-        parseParamsRest();
+    // <decl_var> ::= <tipo> ID <inicializador> ";"; no for o ; pertence ao cabeçalho.
+    private VarDecl parseDeclVar(boolean semicolon) {
+        Type type = parseTipo();
+        String name = match(TokenType.IDENTIFIER).getText();
+        Expr initial = parseInicializador();
+        if (semicolon) match(TokenType.DELIMITER, ";");
+        return new VarDecl(type, name, initial);
     }
-
-    // <params_rest> ::= "," <param> <params_rest> | ε
-    private void parseParamsRest() {
-        if (isDelimiter(peek(), ",")) {
-            advance();
-            parseParam();
-            parseParamsRest();
-            return;
-        }
-        if (isDelimiter(peek(), ")")) {
-            return;
-        }
-        error("esperado ',' ou ')', encontrado " + describe(peek()));
-        throw new ParseError();
+    private Expr parseInicializador() {
+        if (isOperator(peek(), "=")) { advance(); return parseExpr(); }
+        if (isDelimiter(peek(), ";")) return null;
+        invalid("esperado '=' ou ';'");
+        throw new AssertionError();
     }
-
-    // <param> ::= <tipo> ID
-    private void parseParam() {
-        parseTipo();
-        match(TokenType.IDENTIFIER);
-    }
-
-    // <decl_var> ::= <tipo> ID <inicializador> ";"
-    private void parseDeclVar() {
-        parseTipo();
-        match(TokenType.IDENTIFIER);
-        parseInicializador();
-        match(TokenType.DELIMITER, ";");
-    }
-
-    // <inicializador> ::= "=" <expr> | ε
-    private void parseInicializador() {
-        if (isOperator(peek(), "=")) {
-            advance();
-            parseExpr();
-            return;
-        }
-        if (isDelimiter(peek(), ";")) {
-            return;
-        }
-        error("esperado '=' ou ';', encontrado " + describe(peek()));
-        throw new ParseError();
-    }
-
-    // ---------- comandos ----------
 
     // <bloco> ::= "{" <comandos> "}"
-    private void parseBloco() {
-        match(TokenType.DELIMITER, "{");
-        parseComandos();
-        match(TokenType.DELIMITER, "}");
-    }
-
-    // <comandos> ::= <comando> <comandos> | ε
-    private void parseComandos() {
+    private Block parseBloco() {
+        Token opening = match(TokenType.DELIMITER, "{");
+        List<Node> statements = new ArrayList<>();
         while (startsComando(peek())) {
-            try {
-                parseComando();
-            } catch (ParseError e) {
-                sincronizarComComando();
-            }
+            int start = pos;
+            try { statements.add(parseComando()); }
+            catch (ParseError e) { sincronizarComComando(start); }
         }
+        match(TokenType.DELIMITER, "}");
+        return new Block(opening, statements);
     }
-
-    // <comando> ::= <decl_var> | <comando_id> | <condicional> | <enquanto> | <para> | <retorno> | <bloco>
-    private void parseComando() {
+    private Node parseComando() {
         Token t = peek();
-        if (startsTipo(t)) { parseDeclVar(); return; }
-        if (isType(t, TokenType.IDENTIFIER)) { parseComandoId(); return; }
-        if (isType(t, TokenType.IF)) { parseCondicional(); return; }
-        if (isType(t, TokenType.WHILE)) { parseEnquanto(); return; }
-        if (isType(t, TokenType.FOR)) { parsePara(); return; }
-        if (isType(t, TokenType.RETURN)) { parseRetorno(); return; }
-        if (isDelimiter(t, "{")) { parseBloco(); return; }
-        error("comando inválido, encontrado " + describe(t));
-        throw new ParseError();
+        if (startsTipo(t)) return parseDeclVar(true);
+        if (isType(t, TokenType.IDENTIFIER)) return parseComandoId();
+        if (isType(t, TokenType.IF)) return parseCondicional();
+        if (isType(t, TokenType.WHILE)) return parseEnquanto();
+        if (isType(t, TokenType.FOR)) return parsePara();
+        if (isType(t, TokenType.RETURN)) return parseRetorno();
+        if (isDelimiter(t, "{")) return parseBloco();
+        invalid("comando inválido");
+        throw new AssertionError();
     }
-
-    // <comando_id> ::= ID <resto_comando_id> ";"
-    private void parseComandoId() {
-        match(TokenType.IDENTIFIER);
-        parseRestoComandoId();
-        match(TokenType.DELIMITER, ";");
-    }
-
-    // <resto_comando_id> ::= "=" <expr> | "(" <args_opt> ")"
-    private void parseRestoComandoId() {
-        if (isOperator(peek(), "=")) {
+    // <comando_id> ::= ID ("=" <expr> | "(" <args_opt> ")") ";"
+    private Stmt parseComandoId() {
+        Token name = match(TokenType.IDENTIFIER);
+        Stmt s;
+        if (isOperator(peek(), "=")) { advance(); s = new Assign(name, parseExpr()); }
+        else if (isDelimiter(peek(), "(")) {
             advance();
-            parseExpr();
-            return;
-        }
-        if (isDelimiter(peek(), "(")) {
-            advance();
-            parseArgsOpt();
+            List<Expr> args = parseArgsOpt();
             match(TokenType.DELIMITER, ")");
-            return;
-        }
-        error("esperado '=' ou '(', encontrado " + describe(peek()));
-        throw new ParseError();
-    }
-
-    // <condicional> ::= "if" "(" <expr> ")" <bloco> <cauda_cond>
-    private void parseCondicional() {
-        match(TokenType.IF);
-        match(TokenType.DELIMITER, "(");
-        parseExpr();
-        match(TokenType.DELIMITER, ")");
-        parseBloco();
-        parseCaudaCond();
-    }
-
-    // <cauda_cond> ::= "elif" "(" <expr> ")" <bloco> <cauda_cond> | "else" <bloco> | ε
-    private void parseCaudaCond() {
-        if (isType(peek(), TokenType.ELIF)) {
-            advance();
-            match(TokenType.DELIMITER, "(");
-            parseExpr();
-            match(TokenType.DELIMITER, ")");
-            parseBloco();
-            parseCaudaCond();
-            return;
-        }
-        if (isType(peek(), TokenType.ELSE)) {
-            advance();
-            parseBloco();
-            return;
-        }
-        if (startsComando(peek()) || isDelimiter(peek(), "}")) {
-            return;
-        }
-        error("esperado 'elif', 'else' ou o fim do bloco, encontrado " + describe(peek()));
-        throw new ParseError();
-    }
-
-    // <enquanto> ::= "while" "(" <expr> ")" <bloco>
-    private void parseEnquanto() {
-        match(TokenType.WHILE);
-        match(TokenType.DELIMITER, "(");
-        parseExpr();
-        match(TokenType.DELIMITER, ")");
-        parseBloco();
-    }
-
-    // <para> ::= "for" "(" <init_for> ";" <cond_for> ";" <passo_for> ")" <bloco>
-    private void parsePara() {
-        match(TokenType.FOR);
-        match(TokenType.DELIMITER, "(");
-        parseInitFor();
+            s = new CallStmt(name, args);
+        } else { invalid("esperado '=' ou '('"); throw new AssertionError(); }
         match(TokenType.DELIMITER, ";");
-        parseCondFor();
-        match(TokenType.DELIMITER, ";");
-        parsePassoFor();
+        return s;
+    }
+    // <condicional> ::= if "(" <expr> ")" <bloco> <cauda_cond>
+    private If parseCondicional() {
+        Token token = match(TokenType.IF);
+        List<Branch> branches = new ArrayList<>();
+        branches.add(parseBranch(token));
+        while (isType(peek(), TokenType.ELIF)) branches.add(parseBranch(advance()));
+        Block elseBody = null;
+        if (isType(peek(), TokenType.ELSE)) { advance(); elseBody = parseBloco(); }
+        else if (!startsComando(peek()) && !isDelimiter(peek(), "}")) invalid("esperado 'elif', 'else' ou o fim do bloco");
+        return new If(token, branches, elseBody);
+    }
+    private Branch parseBranch(Token keyword) {
+        match(TokenType.DELIMITER, "(");
+        Expr condition = parseExpr();
         match(TokenType.DELIMITER, ")");
-        parseBloco();
+        return new Branch(keyword, condition, parseBloco());
     }
-
-    // <init_for> ::= <tipo> ID <inicializador> | ID "=" <expr> | ε
-    private void parseInitFor() {
-        if (startsTipo(peek())) {
-            parseTipo();
-            match(TokenType.IDENTIFIER);
-            parseInicializador();
-            return;
-        }
-        if (isType(peek(), TokenType.IDENTIFIER)) {
-            advance();
-            match(TokenType.OPERATOR, "=");
-            parseExpr();
-            return;
-        }
-        if (isDelimiter(peek(), ";")) {
-            return;
-        }
-        error("esperada uma declaração, uma atribuição ou ';', encontrado " + describe(peek()));
-        throw new ParseError();
+    private While parseEnquanto() {
+        Token t = match(TokenType.WHILE);
+        match(TokenType.DELIMITER, "(");
+        Expr condition = parseExpr();
+        match(TokenType.DELIMITER, ")");
+        return new While(t, condition, parseBloco());
     }
-
-    // <cond_for> ::= <expr> | ε
-    private void parseCondFor() {
-        if (startsExpr(peek())) {
-            parseExpr();
-            return;
-        }
-        if (isDelimiter(peek(), ";")) {
-            return;
-        }
-        error("esperada uma expressão ou ';', encontrado " + describe(peek()));
-        throw new ParseError();
-    }
-
-    // <passo_for> ::= ID "=" <expr> | ε
-    private void parsePassoFor() {
-        if (isType(peek(), TokenType.IDENTIFIER)) {
-            advance();
-            match(TokenType.OPERATOR, "=");
-            parseExpr();
-            return;
-        }
-        if (isDelimiter(peek(), ")")) {
-            return;
-        }
-        error("esperada uma atribuição ou ')', encontrado " + describe(peek()));
-        throw new ParseError();
-    }
-
-    // <retorno> ::= "return" <retorno_opt> ";"
-    private void parseRetorno() {
-        match(TokenType.RETURN);
-        parseRetornoOpt();
+    private For parsePara() {
+        Token t = match(TokenType.FOR);
+        match(TokenType.DELIMITER, "(");
+        Node init = parseInitFor();
         match(TokenType.DELIMITER, ";");
+        Expr condition = parseCondFor();
+        match(TokenType.DELIMITER, ";");
+        Assign step = parsePassoFor();
+        match(TokenType.DELIMITER, ")");
+        return new For(t, init, condition, step, parseBloco());
+    }
+    private Node parseInitFor() {
+        if (startsTipo(peek())) return parseDeclVar(false);
+        if (isType(peek(), TokenType.IDENTIFIER)) return parseAssignFor();
+        if (isDelimiter(peek(), ";")) return null;
+        invalid("esperada uma declaração, uma atribuição ou ';'");
+        throw new AssertionError();
+    }
+    private Assign parseAssignFor() {
+        Token id = match(TokenType.IDENTIFIER);
+        match(TokenType.OPERATOR, "=");
+        return new Assign(id, parseExpr());
+    }
+    private Expr parseCondFor() {
+        if (startsExpr(peek())) return parseExpr();
+        if (isDelimiter(peek(), ";")) return null;
+        invalid("esperada uma expressão ou ';'");
+        throw new AssertionError();
+    }
+    private Assign parsePassoFor() {
+        if (isType(peek(), TokenType.IDENTIFIER)) return parseAssignFor();
+        if (isDelimiter(peek(), ")")) return null;
+        invalid("esperada uma atribuição ou ')'");
+        throw new AssertionError();
+    }
+    private Return parseRetorno() {
+        Token t = match(TokenType.RETURN);
+        Expr value = null;
+        if (startsExpr(peek())) value = parseExpr();
+        else if (!isDelimiter(peek(), ";")) invalid("esperada uma expressão ou ';'");
+        match(TokenType.DELIMITER, ";");
+        return new Return(t, value);
     }
 
-    // <retorno_opt> ::= <expr> | ε
-    private void parseRetornoOpt() {
-        if (startsExpr(peek())) {
-            parseExpr();
-            return;
-        }
-        if (isDelimiter(peek(), ";")) {
-            return;
-        }
-        error("esperada uma expressão ou ';', encontrado " + describe(peek()));
-        throw new ParseError();
+    // Caudas por laços: recebem a AST esquerda e acumulam Bin, com associatividade à esquerda.
+    private Expr parseExpr() {
+        Expr left = parseExprAnd();
+        while (isType(peek(), TokenType.OR)) { Token op = advance(); left = new Bin(op, left, parseExprAnd()); }
+        if (!emFollowExpr(peek())) invalid("esperado 'or' ou o fim da expressão");
+        return left;
     }
-
-    // ---------- expressões, da menor para a maior precedência ----------
-
-    // <expr> ::= <expr_and> <cauda_or>
-    private void parseExpr() {
-        parseExprAnd();
-        parseCaudaOr();
+    private Expr parseExprAnd() {
+        Expr left = parseExprIgual();
+        while (isType(peek(), TokenType.AND)) { Token op = advance(); left = new Bin(op, left, parseExprIgual()); }
+        if (!emFollowCaudaAnd(peek())) invalid("esperado 'and' ou o fim da expressão");
+        return left;
     }
-
-    // <cauda_or> ::= "or" <expr_and> <cauda_or> | ε
-    private void parseCaudaOr() {
-        if (isType(peek(), TokenType.OR)) {
-            advance();
-            parseExprAnd();
-            parseCaudaOr();
-            return;
-        }
-        if (emFollowExpr(peek())) {
-            return;
-        }
-        error("esperado 'or' ou o fim da expressão, encontrado " + describe(peek()));
-        throw new ParseError();
+    private Expr parseExprIgual() {
+        Expr left = parseExprRel();
+        if (isType(peek(), TokenType.EQUAL)) { Token op = advance(); left = new Bin(op, left, parseExprRel()); }
+        if (!emFollowCaudaIgual(peek())) invalid("esperado 'equal' ou o fim da expressão");
+        return left;
     }
-
-    // <expr_and> ::= <expr_igual> <cauda_and>
-    private void parseExprAnd() {
-        parseExprIgual();
-        parseCaudaAnd();
+    private Expr parseExprRel() {
+        Expr left = parseExprSoma();
+        if (isRel(peek())) { Token op = advance(); left = new Bin(op, left, parseExprSoma()); }
+        if (!emFollowCaudaRel(peek())) invalid("esperado um operador relacional ou o fim da expressão");
+        return left;
     }
-
-    // <cauda_and> ::= "and" <expr_igual> <cauda_and> | ε
-    private void parseCaudaAnd() {
-        if (isType(peek(), TokenType.AND)) {
-            advance();
-            parseExprIgual();
-            parseCaudaAnd();
-            return;
+    private boolean isRel(Token t) { return isOperator(t, "<") || isOperator(t, ">") || isOperator(t, "<=") || isOperator(t, ">="); }
+    private Expr parseExprSoma() {
+        Expr left = parseExprProd();
+        while (isOperator(peek(), "+") || isOperator(peek(), "-")) {
+            Token op = advance(); left = new Bin(op, left, parseExprProd());
         }
-        if (emFollowCaudaAnd(peek())) {
-            return;
-        }
-        error("esperado 'and' ou o fim da expressão, encontrado " + describe(peek()));
-        throw new ParseError();
+        if (!emFollowCaudaSoma(peek())) invalid("esperado '+', '-' ou o fim da expressão");
+        return left;
     }
-
-    // <expr_igual> ::= <expr_rel> <cauda_igual>
-    private void parseExprIgual() {
-        parseExprRel();
-        parseCaudaIgual();
-    }
-
-    // <cauda_igual> ::= "equal" <expr_rel> | ε  (sem encadear: "equal" não é recursivo, por decisão do grupo)
-    private void parseCaudaIgual() {
-        if (isType(peek(), TokenType.EQUAL)) {
-            advance();
-            parseExprRel();
-            return;
+    private Expr parseExprProd() {
+        Expr left = parseExprUnaria();
+        while (isOperator(peek(), "*") || isOperator(peek(), "/") || isOperator(peek(), "%")) {
+            Token op = advance(); left = new Bin(op, left, parseExprUnaria());
         }
-        if (emFollowCaudaIgual(peek())) {
-            return;
-        }
-        error("esperado 'equal' ou o fim da expressão, encontrado " + describe(peek()));
-        throw new ParseError();
+        if (!emFollowCaudaProd(peek())) invalid("esperado '*', '/', '%' ou o fim da expressão");
+        return left;
     }
-
-    // <expr_rel> ::= <expr_soma> <cauda_rel>
-    private void parseExprRel() {
-        parseExprSoma();
-        parseCaudaRel();
-    }
-
-    // <cauda_rel> ::= "<" <expr_soma> | ">" <expr_soma> | "<=" <expr_soma> | ">=" <expr_soma> | ε
-    // (sem encadear: "a < b < c" não é válido; combine com "and", como em "a < b and b < c")
-    private void parseCaudaRel() {
-        Token t = peek();
-        if (isOperator(t, "<") || isOperator(t, ">") || isOperator(t, "<=") || isOperator(t, ">=")) {
-            advance();
-            parseExprSoma();
-            return;
-        }
-        if (emFollowCaudaRel(t)) {
-            return;
-        }
-        error("esperado um operador relacional ou o fim da expressão, encontrado " + describe(t));
-        throw new ParseError();
-    }
-
-    // <expr_soma> ::= <expr_prod> <cauda_soma>
-    private void parseExprSoma() {
-        parseExprProd();
-        parseCaudaSoma();
-    }
-
-    // <cauda_soma> ::= "+" <expr_prod> <cauda_soma> | "-" <expr_prod> <cauda_soma> | ε
-    private void parseCaudaSoma() {
-        Token t = peek();
-        if (isOperator(t, "+") || isOperator(t, "-")) {
-            advance();
-            parseExprProd();
-            parseCaudaSoma();
-            return;
-        }
-        if (emFollowCaudaSoma(t)) {
-            return;
-        }
-        error("esperado '+', '-' ou o fim da expressão, encontrado " + describe(t));
-        throw new ParseError();
-    }
-
-    // <expr_prod> ::= <expr_unaria> <cauda_prod>
-    private void parseExprProd() {
-        parseExprUnaria();
-        parseCaudaProd();
-    }
-
-    // <cauda_prod> ::= "*" <expr_unaria> <cauda_prod> | "/" <expr_unaria> <cauda_prod> | "%" <expr_unaria> <cauda_prod> | ε
-    private void parseCaudaProd() {
-        Token t = peek();
-        if (isOperator(t, "*") || isOperator(t, "/") || isOperator(t, "%")) {
-            advance();
-            parseExprUnaria();
-            parseCaudaProd();
-            return;
-        }
-        if (emFollowCaudaProd(t)) {
-            return;
-        }
-        error("esperado '*', '/', '%' ou o fim da expressão, encontrado " + describe(t));
-        throw new ParseError();
-    }
-
-    // <expr_unaria> ::= "not" <expr_unaria> | "-" <expr_unaria> | "+" <expr_unaria> | <primario>
-    private void parseExprUnaria() {
+    private Expr parseExprUnaria() {
         Token t = peek();
         if (isType(t, TokenType.NOT) || isOperator(t, "-") || isOperator(t, "+")) {
-            advance();
-            parseExprUnaria();
-            return;
+            advance(); return new Unary(t, parseExprUnaria());
         }
-        parsePrimario();
+        return parsePrimario();
     }
-
-    // <primario> ::= LIT_INT | LIT_REAL | LIT_STRING | "true" | "false" | ID <sufixo_primario> | "(" <expr> ")"
-    private void parsePrimario() {
+    private Expr parsePrimario() {
         Token t = peek();
-        if (isType(t, TokenType.INT) || isType(t, TokenType.REAL) || isType(t, TokenType.STRING)) {
-            advance();
-            return;
-        }
-        if (isReservedWord(t, "true") || isReservedWord(t, "false")) {
-            advance();
-            return;
-        }
+        if (isType(t, TokenType.INT)) { advance(); return new IntLiteral(t); }
+        if (isType(t, TokenType.REAL)) { advance(); return new RealLiteral(t); }
+        if (isType(t, TokenType.STRING)) { advance(); return new StringLiteral(t); }
+        if (isReservedWord(t, "true") || isReservedWord(t, "false")) { advance(); return new BoolLiteral(t); }
         if (isType(t, TokenType.IDENTIFIER)) {
             advance();
-            parseSufixoPrimario();
-            return;
+            if (isDelimiter(peek(), "(")) {
+                advance();
+                List<Expr> args = parseArgsOpt();
+                match(TokenType.DELIMITER, ")");
+                return new CallExpr(t, args);
+            }
+            if (!emFollowPrimario(peek())) invalid("esperado '(' ou o fim da expressão");
+            return new Id(t);
         }
         if (isDelimiter(t, "(")) {
-            advance();
-            parseExpr();
-            match(TokenType.DELIMITER, ")");
-            return;
+            advance(); Expr expr = parseExpr(); match(TokenType.DELIMITER, ")"); return expr;
         }
-        error("esperado um valor (número, texto, identificador ou expressão entre parênteses), encontrado " + describe(t));
-        throw new ParseError();
+        invalid("esperado um valor (número, texto, identificador ou expressão entre parênteses)");
+        throw new AssertionError();
     }
-
-    // <sufixo_primario> ::= "(" <args_opt> ")" | ε
-    private void parseSufixoPrimario() {
-        if (isDelimiter(peek(), "(")) {
-            advance();
-            parseArgsOpt();
-            match(TokenType.DELIMITER, ")");
-            return;
-        }
-        if (emFollowPrimario(peek())) {
-            return;
-        }
-        error("esperado '(' ou o fim da expressão, encontrado " + describe(peek()));
-        throw new ParseError();
-    }
-
-    // <args_opt> ::= <args> | ε
-    private void parseArgsOpt() {
+    private List<Expr> parseArgsOpt() {
+        List<Expr> args = new ArrayList<>();
         if (startsExpr(peek())) {
-            parseArgs();
-            return;
+            args.add(parseExpr());
+            while (isDelimiter(peek(), ",")) { advance(); args.add(parseExpr()); }
         }
-        if (isDelimiter(peek(), ")")) {
-            return;
-        }
-        error("esperado um argumento ou ')', encontrado " + describe(peek()));
-        throw new ParseError();
-    }
-
-    // <args> ::= <expr> <args_rest>
-    private void parseArgs() {
-        parseExpr();
-        parseArgsRest();
-    }
-
-    // <args_rest> ::= "," <expr> <args_rest> | ε
-    private void parseArgsRest() {
-        if (isDelimiter(peek(), ",")) {
-            advance();
-            parseExpr();
-            parseArgsRest();
-            return;
-        }
-        if (isDelimiter(peek(), ")")) {
-            return;
-        }
-        error("esperado ',' ou ')', encontrado " + describe(peek()));
-        throw new ParseError();
+        if (!isDelimiter(peek(), ")")) invalid("esperado um argumento, ',' ou ')'");
+        return args;
     }
 }

@@ -1,0 +1,10 @@
+Program
+  Function(f)
+    Type(int)
+    Block
+      Return
+        Bin(+)
+          Id(a)
+          Bin(*)
+            Id(b)
+            Id(c)

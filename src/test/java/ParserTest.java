@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class ParserTest {
 
     private static boolean aceita(String codigo) {
-        return new Parser(new Scanner(codigo)).parse();
+        return new Parser(new Scanner(codigo)).parse().accepted();
     }
 
     private static Parser parserPara(String codigo) {
