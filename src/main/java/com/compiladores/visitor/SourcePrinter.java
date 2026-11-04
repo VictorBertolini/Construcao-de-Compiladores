@@ -39,6 +39,7 @@ public final class SourcePrinter implements Visitor<String> {
     public String visitIntLiteral(IntLiteral n) { return n.value; }
     public String visitRealLiteral(RealLiteral n) { return n.value; }
     public String visitStringLiteral(StringLiteral n) { return n.value; }
+    public String visitCharLiteral(CharLiteral n) { return n.value; }
     public String visitBoolLiteral(BoolLiteral n) { return Boolean.toString(n.value); }
     public String visitUnary(Unary n) { return "(" + n.op + " " + expr(n.operand) + ")"; }
     public String visitBin(Bin n) { return "(" + expr(n.left) + " " + n.op + " " + expr(n.right) + ")"; }

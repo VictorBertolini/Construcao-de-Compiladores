@@ -22,6 +22,7 @@ public interface Visitor<T> {
     T visitIntLiteral(IntLiteral n);
     T visitRealLiteral(RealLiteral n);
     T visitStringLiteral(StringLiteral n);
+    T visitCharLiteral(CharLiteral n);
     T visitBoolLiteral(BoolLiteral n);
     T visitUnary(Unary n);
     T visitBin(Bin n);

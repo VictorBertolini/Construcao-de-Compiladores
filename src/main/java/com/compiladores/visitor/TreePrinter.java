@@ -45,6 +45,7 @@ public final class TreePrinter implements Visitor<Void> {
     public Void visitIntLiteral(IntLiteral n) { line("Int(" + n.value + ")"); return null; }
     public Void visitRealLiteral(RealLiteral n) { line("Real(" + n.value + ")"); return null; }
     public Void visitStringLiteral(StringLiteral n) { line("String(" + n.value + ")"); return null; }
+    public Void visitCharLiteral(CharLiteral n) { line("Char(" + n.value + ")"); return null; }
     public Void visitBoolLiteral(BoolLiteral n) { line("Bool(" + n.value + ")"); return null; }
     public Void visitUnary(Unary n) { line("Unary(" + n.op + ")"); child(n.operand); return null; }
     public Void visitBin(Bin n) { line("Bin(" + n.op + ")"); child(n.left); child(n.right); return null; }

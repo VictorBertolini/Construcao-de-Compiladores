@@ -142,6 +142,12 @@ public final class Ast {
         public StringLiteral(Token t) { super(t); this.value = t.getText(); }
         public <T> T accept(Visitor<T> v) { return v.visitStringLiteral(this); }
     }
+    /** Quinto tipo básico; o scanner do CP1 ainda não emite token de char, então o parser não o constrói. */
+    public static final class CharLiteral extends Expr {
+        public final String value;
+        public CharLiteral(Token t) { super(t); this.value = t.getText(); }
+        public <T> T accept(Visitor<T> v) { return v.visitCharLiteral(this); }
+    }
     public static final class BoolLiteral extends Expr {
         public final boolean value;
         public BoolLiteral(Token t) { super(t); this.value = Boolean.parseBoolean(t.getText()); }

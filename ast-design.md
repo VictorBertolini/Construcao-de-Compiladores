@@ -22,12 +22,30 @@ Por enquanto os campos são finais; em uma etapa futura pode-se acrescentar
 estrutura de filhos, os visitors ou as produções. **Não há resolução de símbolos
 nem inferência de tipos neste checkpoint.**
 
-Os tipos reconhecidos são `int`, `long`, `float`, `double`, `boolean`, `string`,
-e `void` somente em retornos de procedimentos. O scanner CP1 reconhece apenas
-quatro categorias de literal (`INT`, `REAL`, `STRING`, `true`/`false`), não seis:
-`IntLiteral`, `RealLiteral`, `StringLiteral` e `BoolLiteral`. A distinção entre
-`int`/`long` e `float`/`double` pertence à **análise semântica**, que ainda
-não existe. Não foram inventados tokens `LIT_LONG`, `LIT_FLOAT` ou `LIT_DOUBLE`.
+Os tipos declaráveis na gramática (`<tipo>`) são `int`, `long`, `float`,
+`double`, `boolean` e `string`, além de `void` somente em retornos de
+procedimentos. Para os literais, a AST cobre os **cinco tipos básicos** do
+escopo do curso, com um nó para cada:
+
+| Tipo básico | Nó da AST | Token do scanner CP1 |
+|---|---|---|
+| inteiro | `IntLiteral` | `INT` |
+| real | `RealLiteral` | `REAL` |
+| booleano | `BoolLiteral` | `true` / `false` |
+| caractere | `CharLiteral` | — (ainda não existe) |
+| string | `StringLiteral` | `STRING` |
+
+`CharLiteral` já faz parte da hierarquia, do `Visitor<T>` e dos dois visitors,
+mas **o parser ainda não o constrói**: o scanner do CP1 não tem token de
+literal de caractere (aspas simples), e o enunciado proíbe modificá-lo (ver a
+observação sobre `char` em `gramatica-first-follow.md`). Quando esse token
+existir, basta acrescentar uma alternativa em `<primario>` que crie
+`CharLiteral`; nenhuma outra classe de nó e nenhum visitor precisará mudar.
+
+A distinção entre `int`/`long` e `float`/`double` não gera literais separados:
+o scanner produz o mesmo token para ambos, e decidir o tipo exato pertence à
+**análise semântica**, que ainda não existe. Não foram inventados tokens
+`LIT_LONG`, `LIT_FLOAT` ou `LIT_DOUBLE`.
 
 ## 2. Hierarquia de nós
 
@@ -56,6 +74,7 @@ abstratas são `Node`, `Item`, `Stmt` e `Expr`.
 | `RealLiteral` | `value:String` | `LIT_REAL` |
 | `StringLiteral` | `value:String` (lexema com aspas e escapes) | `LIT_STRING` |
 | `BoolLiteral` | `value:boolean` | `true`/`false` |
+| `CharLiteral` | `value:String` (lexema com aspas simples) | nenhuma no CP2: reservado para um futuro `LIT_CHAR`, que o scanner do CP1 não emite |
 | `Unary` | `op:String`, `operand:Expr` | `<expr_unaria>` com `not`, `-` ou `+` |
 | `Bin` | `op:String`, `left:Expr`, `right:Expr` | operadores nas caudas de expressões |
 | `CallExpr` | `name:String`, `args:List<Expr>` | `ID <sufixo_primario>` com `(...)` |
@@ -194,7 +213,7 @@ Exemplos de **derivação descartada**, ao lado do desenho:
 
 `TreePrinter.print(root)` faz percurso **pré-ordem**, um nó por linha, e
 indenta com **dois espaços por nível**. Os atributos relevantes aparecem no
-rótulo (`Bin(+)`, `Function(soma)`, `String("x")`, `Type(int)`, etc.). Filhos
+rótulo (`Bin(+)`, `Function(soma)`, `String("x")`, `Char('x')`, `Type(int)`, etc.). Filhos
 aparecem em ordem fixa. Campos opcionais vazios são indicados por
 `Initializer(empty)`, `Value(empty)`, `Init(empty)`, `Condition(empty)`,
 `Step(empty)`; a presença de `else` tem rótulo `Else`. A posição de origem
