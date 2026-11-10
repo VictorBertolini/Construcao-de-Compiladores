@@ -1,0 +1,4 @@
+RESOLUÇÕES
+linha 3: 'item' -> VARIABLE 'item'@1 (nível 0)
+ERROS
+linha 2: 'item' já declarado neste escopo (linha 1)

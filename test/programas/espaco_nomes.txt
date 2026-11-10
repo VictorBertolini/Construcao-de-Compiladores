@@ -1,0 +1,4 @@
+int item = 1;
+function void item() {
+    item = 2;
+}

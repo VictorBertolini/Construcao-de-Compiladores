@@ -1,9 +1,10 @@
 package com.compiladores.ast;
 
 import com.compiladores.entity.Token;
+import com.compiladores.symbols.Symbol;
 import java.util.List;
 
-/** Nós imutáveis da AST. As posições não participam da igualdade estrutural. */
+/** Estrutura do CP3, preservada; apenas Id.decl é decorado pelo CP4. */
 public final class Ast {
     private Ast() { }
 
@@ -124,6 +125,8 @@ public final class Ast {
     }
     public static final class Id extends Expr {
         public final String name;
+        /** Declaração correspondente ao uso; null quando ainda não resolvido. */
+        public Symbol decl;
         public Id(Token t) { super(t); this.name = t.getText(); }
         public <T> T accept(Visitor<T> v) { return v.visitId(this); }
     }

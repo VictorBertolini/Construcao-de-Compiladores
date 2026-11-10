@@ -1,0 +1,6 @@
+RESOLUÇÕES
+(nenhuma)
+ERROS
+linha 3: 'a' já declarado neste escopo (linha 2)
+linha 4: 'b' não declarado
+linha 5: 'c' não declarado

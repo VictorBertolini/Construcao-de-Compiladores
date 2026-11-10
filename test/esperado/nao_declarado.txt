@@ -1,0 +1,4 @@
+RESOLUÇÕES
+(nenhuma)
+ERROS
+linha 2: 'desconhecido' não declarado

@@ -1,0 +1,6 @@
+function void primeiro() {
+    segundo();
+}
+function void segundo() {
+    primeiro();
+}

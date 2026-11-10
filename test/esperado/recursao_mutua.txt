@@ -1,0 +1,4 @@
+RESOLUÇÕES
+linha 5: 'primeiro' -> PROCEDURE 'primeiro'@1 (nível 0)
+ERROS
+linha 2: 'segundo' não declarado

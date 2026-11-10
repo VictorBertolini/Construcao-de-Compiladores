@@ -1,0 +1,6 @@
+function void f() {
+    int a = 1;
+    int a = 2;
+    b = 3;
+    c = 4;
+}

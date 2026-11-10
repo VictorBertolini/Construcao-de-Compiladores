@@ -5,6 +5,7 @@ import com.compiladores.entity.Scanner;
 import com.compiladores.entity.Token;
 import com.compiladores.visitor.TreePrinter;
 import com.compiladores.visitor.SourcePrinter;
+import com.compiladores.visitor.IdentificationVisitor;
 
 public class Main {
 
@@ -37,6 +38,9 @@ public class Main {
         if (resultado.accepted()) {
             System.out.println("\nAST:\n" + new TreePrinter().print(resultado.ast));
             System.out.println("\nCódigo reimpresso:\n" + new SourcePrinter().print(resultado.ast));
+            IdentificationVisitor identification = new IdentificationVisitor();
+            identification.analyze(resultado.ast);
+            System.out.println("\nIdentificação (CP4):\n" + identification.report());
         }
     }
 

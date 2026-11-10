@@ -1,0 +1,6 @@
+RESOLUÇÕES
+linha 2: 'n' -> PARAMETER 'n'@1 (nível 1)
+linha 3: 'repetir' -> PROCEDURE 'repetir'@1 (nível 0)
+linha 3: 'n' -> PARAMETER 'n'@1 (nível 1)
+ERROS
+(nenhum)

@@ -1,0 +1,4 @@
+RESOLUÇÕES
+linha 4: 'x' -> VARIABLE 'x'@3 (nível 1)
+ERROS
+linha 2: 'x' não declarado

@@ -1,0 +1,9 @@
+int x = 10;
+function int f(int x) {
+    int y = x;
+    {
+        int x = y;
+        y = x;
+    }
+    return x;
+}

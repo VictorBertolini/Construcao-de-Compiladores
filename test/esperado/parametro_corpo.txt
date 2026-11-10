@@ -1,0 +1,4 @@
+RESOLUÇÕES
+linha 3: 'a' -> PARAMETER 'a'@1 (nível 1)
+ERROS
+linha 2: 'a' já declarado neste escopo (linha 1)

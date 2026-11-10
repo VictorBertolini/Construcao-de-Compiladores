@@ -1,0 +1,13 @@
+RESOLUÇÕES
+linha 3: 'p' -> PARAMETER 'p'@2 (nível 1)
+linha 7: 'x' -> VARIABLE 'x'@5 (nível 2)
+linha 8: 'soma' -> VARIABLE 'soma'@3 (nível 1)
+linha 8: 'soAqui' -> VARIABLE 'soAqui'@7 (nível 3)
+linha 10: 'soma' -> VARIABLE 'soma'@3 (nível 1)
+linha 10: 'x' -> VARIABLE 'x'@5 (nível 2)
+linha 12: 'soma' -> VARIABLE 'soma'@3 (nível 1)
+linha 12: 'x' -> VARIABLE 'x'@1 (nível 0)
+linha 13: 'soma' -> VARIABLE 'soma'@3 (nível 1)
+linha 14: 'soma' -> VARIABLE 'soma'@3 (nível 1)
+ERROS
+linha 13: 'soAqui' não declarado

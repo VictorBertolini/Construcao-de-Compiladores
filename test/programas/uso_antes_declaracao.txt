@@ -1,0 +1,5 @@
+function void f() {
+    x = 1;
+    int x = 0;
+    x = 2;
+}

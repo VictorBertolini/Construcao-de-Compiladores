@@ -1,0 +1,4 @@
+function void f(int a) {
+    int a = 1;
+    a = 2;
+}

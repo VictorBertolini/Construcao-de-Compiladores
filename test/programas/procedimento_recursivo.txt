@@ -1,0 +1,6 @@
+function void repetir(int n) {
+    if (n > 0) {
+        repetir(n - 1);
+    }
+    return;
+}

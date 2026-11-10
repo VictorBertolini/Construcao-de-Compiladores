@@ -1,0 +1,8 @@
+RESOLUÇÕES
+linha 3: 'x' -> PARAMETER 'x'@2 (nível 1)
+linha 5: 'y' -> VARIABLE 'y'@3 (nível 1)
+linha 6: 'y' -> VARIABLE 'y'@3 (nível 1)
+linha 6: 'x' -> VARIABLE 'x'@5 (nível 2)
+linha 8: 'x' -> PARAMETER 'x'@2 (nível 1)
+ERROS
+(nenhum)

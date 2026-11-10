@@ -1,0 +1,15 @@
+int x = 1;
+function int exemplo(int p) {
+    int soma = p;
+    {
+        int x = 2;
+        {
+            int soAqui = x;
+            soma = soAqui;
+        }
+        soma = x;
+    }
+    soma = x;
+    soma = soAqui;
+    return soma;
+}

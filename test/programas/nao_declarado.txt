@@ -1,0 +1,3 @@
+function void f() {
+    desconhecido = 1;
+}
