@@ -6,6 +6,9 @@ import com.compiladores.symbols.StackSymbolTable;
 import com.compiladores.symbols.Symbol;
 import com.compiladores.symbols.Symbol.Category;
 import com.compiladores.symbols.SymbolTable;
+import com.compiladores.entity.Token;
+import com.compiladores.entity.TokenType;
+import com.compiladores.types.Tipo;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -24,6 +27,27 @@ public final class IdentificationVisitor implements Visitor<Void> {
     public IdentificationVisitor() { this(new StackSymbolTable()); }
     public IdentificationVisitor(SymbolTable table) {
         this.table = java.util.Objects.requireNonNull(table, "tabela de símbolos");
+        declareBuiltins();
+    }
+
+    /**
+     * CP5: rotinas pré-declaradas no nível 0 (linha 0 = predefinido).
+     * print(qualquer) é procedimento; read() é função que devolve string.
+     */
+    private void declareBuiltins() {
+        Token fn = new Token(TokenType.FUNCTION, "function", 0, 0);
+        Block empty = new Block(new Token(TokenType.DELIMITER, "{", 0, 0), List.of());
+        Symbol print = new Symbol("print", Category.PROCEDURE,
+                new ProcedureDecl(fn, "print", List.of(), empty), table.level(), null);
+        print.tipo = Tipo.VOID;
+        print.paramTypes = List.of(Tipo.ANY);
+        table.declare(print);
+        Type str = new Type(new Token(TokenType.RESERVED_WORD, "string", 0, 0));
+        Symbol read = new Symbol("read", Category.FUNCTION,
+                new FunctionDecl(fn, str, "read", List.of(), empty), table.level(), str);
+        read.tipo = Tipo.STRING;
+        read.paramTypes = List.of();
+        table.declare(read);
     }
 
     /** O Main só chama a passada para árvores aceitas; null é ignorado com segurança. */
@@ -49,8 +73,21 @@ public final class IdentificationVisitor implements Visitor<Void> {
         return b.toString();
     }
 
-    private void declare(String name, Category category, Node node, Type type) {
+    private Symbol symbol(String name, Category category, Node node, Type type, Tipo tipo) {
         Symbol symbol = new Symbol(name, category, node, table.level(), type);
+        symbol.tipo = tipo;
+        return symbol;
+    }
+
+    private static List<Tipo> signature(List<Param> params) {
+        List<Tipo> types = new ArrayList<>();
+        for (Param p : params) types.add(Tipo.fromName(p.type.name));
+        return List.copyOf(types);
+    }
+
+    private void declare(Symbol symbol) {
+        String name = symbol.name;
+        Node node = symbol.declaration;
         if (!table.declare(symbol)) {
             Symbol original = table.lookupLocal(name);
             errors.add("linha " + node.line + ": '" + name
@@ -92,22 +129,26 @@ public final class IdentificationVisitor implements Visitor<Void> {
     }
     @Override public Void visitType(Type n) { return null; }
     @Override public Void visitParam(Param n) {
-        declare(n.name, Category.PARAMETER, n, n.type);
+        declare(symbol(n.name, Category.PARAMETER, n, n.type, Tipo.fromName(n.type.name)));
         return null;
     }
     @Override public Void visitFunctionDecl(FunctionDecl n) {
         // A declaração existe antes da análise do corpo: recursão direta funciona.
-        declare(n.name, Category.FUNCTION, n, n.returnType);
+        Symbol s = symbol(n.name, Category.FUNCTION, n, n.returnType, Tipo.fromName(n.returnType.name));
+        s.paramTypes = signature(n.params);
+        declare(s);
         functionBody(n.params, n.body);
         return null;
     }
     @Override public Void visitProcedureDecl(ProcedureDecl n) {
-        declare(n.name, Category.PROCEDURE, n, null);
+        Symbol s = symbol(n.name, Category.PROCEDURE, n, null, Tipo.VOID);
+        s.paramTypes = signature(n.params);
+        declare(s);
         functionBody(n.params, n.body);
         return null;
     }
     @Override public Void visitVarDecl(VarDecl n) {
-        declare(n.name, Category.VARIABLE, n, n.type);
+        declare(symbol(n.name, Category.VARIABLE, n, n.type, Tipo.fromName(n.type.name)));
         descend(n.initial);
         return null;
     }

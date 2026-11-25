@@ -1,0 +1,5 @@
+ERROS
+(nenhum)
+AVISOS
+linha 10: aviso: 'y' pode ser usada sem valor
+linha 12: aviso: 'k' pode ser usada sem valor

@@ -1,0 +1,5 @@
+ERROS
+linha 1: função 'sinal' pode terminar sem 'return'
+linha 15: função 'laco' pode terminar sem 'return'
+AVISOS
+(nenhum)

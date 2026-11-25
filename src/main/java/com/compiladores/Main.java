@@ -6,6 +6,7 @@ import com.compiladores.entity.Token;
 import com.compiladores.visitor.TreePrinter;
 import com.compiladores.visitor.SourcePrinter;
 import com.compiladores.visitor.IdentificationVisitor;
+import com.compiladores.visitor.SemanticAnalyzer;
 
 public class Main {
 
@@ -41,12 +42,18 @@ public class Main {
             IdentificationVisitor identification = new IdentificationVisitor();
             identification.analyze(resultado.ast);
             System.out.println("\nIdentificação (CP4):\n" + identification.report());
+            SemanticAnalyzer semantic = new SemanticAnalyzer();
+            semantic.analyze(resultado.ast);
+            System.out.println("\nAnálise contextual (CP4 + CP5):\n" + semantic.report());
+            System.out.println(semantic.canGenerateCode()
+                    ? "Sem erros: pode seguir para a geração de código."
+                    : "Há erros: a geração de código não será executada.");
         }
     }
 
     private static String lerArquivo(String caminho) {
         try {
-            return new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(caminho)));
+            return java.nio.file.Files.readString(java.nio.file.Paths.get(caminho), java.nio.charset.StandardCharsets.UTF_8);
         } catch (java.io.IOException e) {
             System.err.println("Não foi possível ler o arquivo: " + caminho);
             System.exit(1);

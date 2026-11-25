@@ -1,0 +1,33 @@
+int contador = 0;
+long grande = 10;
+float taxa = 1.5;
+double total = 2;
+boolean ativo = true;
+string nome = "teste";
+function double media(int a, double b) {
+    return (a + b) / 2;
+}
+function void mostrar(string s) {
+    print(s);
+    return;
+}
+function int principal() {
+    string entrada = read();
+    total = media(contador, taxa);
+    grande = grande + contador;
+    if (ativo and not (contador equal 3)) {
+        mostrar(nome + entrada);
+    } elif (total >= 2.5) {
+        print(total);
+    } else {
+        contador = contador % 2;
+    }
+    while (contador < 10) {
+        contador = contador + 1;
+    }
+    for (int i = 0; i < 3; i = i + 1) {
+        taxa = taxa * i;
+    }
+    media(1, 2);
+    return contador;
+}

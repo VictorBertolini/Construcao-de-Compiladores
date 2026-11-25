@@ -1,0 +1,6 @@
+ERROS
+linha 3: operador '+' não aceita boolean e int
+linha 4: operador '-' não aceita boolean
+linha 5: operador 'not' não aceita int
+AVISOS
+(nenhum)

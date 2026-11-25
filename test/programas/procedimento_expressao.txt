@@ -1,0 +1,7 @@
+function void p() {
+    return;
+}
+function void q() {
+    int x = p();
+    print(p() + 1);
+}

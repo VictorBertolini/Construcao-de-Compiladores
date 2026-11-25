@@ -1,0 +1,19 @@
+function int sinal(int n) {
+    if (n > 0) {
+        return 1;
+    } elif (n < 0) {
+        return -1;
+    }
+}
+function int sinal2(int n) {
+    if (n > 0) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+function int laco(int n) {
+    while (n > 0) {
+        return n;
+    }
+}

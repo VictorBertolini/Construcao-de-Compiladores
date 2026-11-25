@@ -1,0 +1,8 @@
+function int f(int a) {
+    int x = (a + true) * 2 - 1;
+    if (x) {
+        x = "s";
+    }
+    y = x + 1;
+    return x equal 1;
+}

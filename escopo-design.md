@@ -4,7 +4,7 @@ Grupo: Sthephanny Caroline e Victor Bertolini.
 
 > **Importante:** este documento registra a especificação e um modelo textual de
 > conferência. O desenho original no papel e a validação independente das saídas
-> devem ser feitos e fotografados pelo grupo, seguindo `manual/ROTEIRO-DA-PARTE-MANUAL.md`.
+> devem ser feitos e fotografados pelo grupo, seguindo `img-cp4`.
 > Não apresentar o modelo digitado como se fosse uma folha escrita à mão.
 
 ## 1. Programa-base para desenhar
@@ -155,4 +155,4 @@ e `lookupLocal` retornam `null` quando não encontram o nome.
 
 **Verificação independente pendente do grupo:** preencher a folha A4 com os
 ambientes, os `x@linha` e os diagnósticos previstos, confrontar com os arquivos
-em `test/esperado/`, corrigir divergências e guardar as fotografias em `manual/`.
+em `test/esperado/`, corrigir divergências e guardar as fotografias em `img-cp4`.

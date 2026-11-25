@@ -1,0 +1,12 @@
+function int f() {
+    return "texto";
+}
+function void p() {
+    return 1;
+}
+function double g() {
+    return;
+}
+function int h() {
+    return 2.5;
+}

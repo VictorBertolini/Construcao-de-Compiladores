@@ -1,0 +1,7 @@
+ERROS
+linha 2: 'return' em 'f': esperado int, veio string
+linha 5: 'return' com valor no procedimento 'p'
+linha 8: 'return' sem valor na função 'g', que retorna double
+linha 11: 'return' em 'h': esperado int, veio float
+AVISOS
+(nenhum)

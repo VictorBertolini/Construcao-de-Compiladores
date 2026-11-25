@@ -1,0 +1,8 @@
+ERROS
+linha 2: operador '+' não aceita int e boolean
+linha 3: condição de 'if' deve ser boolean, mas é int
+linha 4: atribuição a 'x': esperado int, veio string
+linha 6: 'y' não declarado
+linha 7: 'return' em 'f': esperado int, veio boolean
+AVISOS
+(nenhum)

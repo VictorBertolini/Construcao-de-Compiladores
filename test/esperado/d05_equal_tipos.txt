@@ -1,0 +1,5 @@
+ERROS
+linha 6: operador 'equal' não aceita int e boolean
+linha 7: operador 'equal' não aceita string e int
+AVISOS
+(nenhum)

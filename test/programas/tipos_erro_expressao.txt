@@ -1,0 +1,4 @@
+function void f() {
+    int x = 1 + "a";
+    boolean b = 2 * true;
+}

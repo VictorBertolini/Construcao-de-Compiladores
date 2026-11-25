@@ -1,0 +1,6 @@
+function int area(int lado) {
+    return lado * lado;
+}
+function double area(double raio) {
+    return raio * raio * 3.14;
+}

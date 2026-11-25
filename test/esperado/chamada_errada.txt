@@ -1,0 +1,7 @@
+ERROS
+linha 8: 'fat' espera 1 argumento(s), recebeu 2
+linha 9: argumento 1 de 'mostra': esperado string, veio int
+linha 10: 'fat' espera 1 argumento(s), recebeu 0
+linha 12: 'b' não é função nem procedimento
+AVISOS
+(nenhum)

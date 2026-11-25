@@ -1,0 +1,14 @@
+function boolean par(int n) {
+    if (n equal 0) {
+        return true;
+    } else {
+        return impar(n - 1);
+    }
+}
+function boolean impar(int n) {
+    if (n equal 0) {
+        return false;
+    } else {
+        return par(n - 1);
+    }
+}

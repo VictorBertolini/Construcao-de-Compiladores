@@ -1,0 +1,5 @@
+ERROS
+linha 2: operador '+' não aceita int e string
+linha 3: operador '*' não aceita int e boolean
+AVISOS
+(nenhum)

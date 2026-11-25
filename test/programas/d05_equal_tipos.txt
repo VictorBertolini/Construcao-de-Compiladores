@@ -1,0 +1,8 @@
+function void f() {
+    int i = 1;
+    double d = 1.0;
+    boolean ok1 = i equal d;
+    boolean ok2 = true equal false;
+    boolean erro1 = i equal true;
+    boolean erro2 = "1" equal 1;
+}

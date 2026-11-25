@@ -1,0 +1,7 @@
+function void f() {
+    string a = "x";
+    string b = a + "y";
+    boolean igual = a equal b;
+    boolean menor = a < b;
+    string c = a + 1;
+}

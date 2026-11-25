@@ -1,0 +1,4 @@
+ERROS
+linha 4: 'area' já declarado neste escopo (linha 1)
+AVISOS
+(nenhum)

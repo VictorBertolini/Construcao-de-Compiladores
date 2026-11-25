@@ -1,0 +1,4 @@
+ERROS
+linha 5: 'impar' não declarado
+AVISOS
+(nenhum)

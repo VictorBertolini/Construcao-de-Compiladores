@@ -1,0 +1,6 @@
+function int dobro(int n) {
+    return n * 2;
+}
+function void f() {
+    dobro(3);
+}

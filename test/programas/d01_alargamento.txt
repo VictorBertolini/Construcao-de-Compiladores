@@ -1,0 +1,9 @@
+function void f() {
+    int i = 1;
+    long l = i;
+    float fl = l;
+    double d = fl;
+    i = d;
+    float g = 2.5;
+    long m = 3.0;
+}

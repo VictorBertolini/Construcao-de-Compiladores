@@ -1,0 +1,5 @@
+ERROS
+linha 5: 'um' é função e foi usado sem parênteses
+linha 6: 'um' é função e não pode receber atribuição
+AVISOS
+(nenhum)

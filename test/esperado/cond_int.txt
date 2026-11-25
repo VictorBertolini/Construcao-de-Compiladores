@@ -1,0 +1,5 @@
+ERROS
+linha 2: condição de 'if' deve ser boolean, mas é int
+linha 5: condição de 'while' deve ser boolean, mas é int
+AVISOS
+(nenhum)

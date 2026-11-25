@@ -1,0 +1,13 @@
+function int fat(int n) {
+    return n;
+}
+function void mostra(string s) {
+    print(s);
+}
+function void main() {
+    int a = fat(1, 2);
+    mostra(10);
+    int c = fat();
+    int b = 3;
+    b();
+}

@@ -1,0 +1,7 @@
+function int um() {
+    return 1;
+}
+function void f() {
+    int x = um;
+    um = 2;
+}

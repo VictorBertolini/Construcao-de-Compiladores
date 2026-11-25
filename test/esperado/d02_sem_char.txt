@@ -1,0 +1,2 @@
+REJEITADO NA ANÁLISE SINTÁTICA
+[linha 2, coluna 10] esperado '=' ou '(', encontrado 'c'

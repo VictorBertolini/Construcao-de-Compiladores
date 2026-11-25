@@ -1,0 +1,6 @@
+function void f() {
+    boolean b = true;
+    int n = b + 1;
+    int m = -b;
+    boolean c = not 1;
+}

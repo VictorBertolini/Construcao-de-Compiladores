@@ -2,9 +2,10 @@ package com.compiladores.ast;
 
 import com.compiladores.entity.Token;
 import com.compiladores.symbols.Symbol;
+import com.compiladores.types.Tipo;
 import java.util.List;
 
-/** Estrutura do CP3, preservada; apenas Id.decl é decorado pelo CP4. */
+/** Estrutura do CP3, preservada; Id.decl é decorado pelo CP4 e Expr.inferredType pelo CP5. */
 public final class Ast {
     private Ast() { }
 
@@ -23,6 +24,8 @@ public final class Ast {
         protected Stmt(Token t) { super(t); }
     }
     public abstract static class Expr extends Node {
+        /** CP5: tipo calculado pelo verificador; null antes da verificação. */
+        public Tipo inferredType;
         protected Expr(Token t) { super(t); }
         protected Expr(int l, int c) { super(l, c); }
     }

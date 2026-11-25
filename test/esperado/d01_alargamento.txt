@@ -1,0 +1,5 @@
+ERROS
+linha 6: atribuição a 'i': esperado int, veio double
+linha 8: inicialização de 'm': esperado long, veio float
+AVISOS
+(nenhum)

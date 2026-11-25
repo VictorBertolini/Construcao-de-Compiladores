@@ -1,0 +1,4 @@
+ERROS
+linha 9: argumento 1 de 'inc': esperado int, veio float
+AVISOS
+(nenhum)

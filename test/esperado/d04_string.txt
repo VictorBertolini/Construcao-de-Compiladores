@@ -1,0 +1,5 @@
+ERROS
+linha 5: operador '<' não aceita string e string
+linha 6: operador '+' não aceita string e int
+AVISOS
+(nenhum)

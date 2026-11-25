@@ -1,0 +1,5 @@
+ERROS
+linha 5: procedimento 'p' usado como expressão
+linha 6: procedimento 'p' usado como expressão
+AVISOS
+(nenhum)
